@@ -1,14 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
-set -x          # on: bash now prints each command before running it
-echo "hello"
-set +x          # off
-echo "hello"
-
-
 
 host=$(hostname)
-usage=$(df / --output=pcent | tail -1 | tr -d ' %')
+usage=$(df / | awk 'NR==2 {print $5+0}')
 threshold=80
 
 echo "===== System Health Report ====="
@@ -29,3 +23,9 @@ fi
 
 echo "--- Memory ---"
 free -h
+
+echo "--- CPU ---"
+vmstat 1 2 | tail -1 | awk '{printf "CPU busy: %d%% | Disk wait: %d%% | Blocked: %d\n", $13+$14, $16, $2}'
+cpu=$(vmstat 1 2 | tail -1 | awk '{print $13 + $14}')
+if [ "$cpu" -gt "$cpu_threshold" ]; then
+	
